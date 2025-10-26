@@ -17,11 +17,11 @@ const TabIcon = ({ focused, icon, title }: any) => {
       </ImageBackground>
     );
   }
-  return(
+  return (
     <View className="size-full justify-center items-center mt-4 rounded-full">
-    <Image source={icon} tintColor={"#A8B5DB"} className="size-5" />
-  </View>
-  )
+      <Image source={icon} tintColor={"#A8B5DB"} className="size-5" />
+    </View>
+  );
 };
 
 const _Layout = () => {
@@ -33,7 +33,7 @@ const _Layout = () => {
           width: "100%",
           height: "100%",
           justifyContent: "center",
-          alignItems: "center"
+          alignItems: "center",
         },
         tabBarStyle: {
           backgroundColor: "#0f0D23",
@@ -44,8 +44,8 @@ const _Layout = () => {
           position: "absolute",
           overflow: "hidden",
           borderWidth: 1,
-          borderColor: '0f0d23'
-        }
+          borderColor: "0f0d23",
+        },
       }}
     >
       <Tabs.Screen
