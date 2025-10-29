@@ -1,4 +1,4 @@
-import { Client, Databases, Query, ID } from "react-native-appwrite";
+import { Client, Databases, ID, Query } from "react-native-appwrite";
 
 // track the sercarches made by user and store them in appwrite database
 
@@ -11,39 +11,62 @@ const client = new Client()
 
 const database = new Databases(client);
 
-export const updateSearchCount = async (query: string, movie: Movie) => {
+export const updateSearchCount = async (query: string, movie: any) => {
   try {
+    // Log the movie object to verify its structure
+    console.log('Movie being sent:', movie);
+    
+    // Normalize the search query
+    const normalizedQuery = query.trim();
+
     const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal("serchTerm", query),
+      Query.equal("searchTerms", normalizedQuery), // Make sure this matches your database field name
     ]);
 
     if (result.documents.length > 0) {
-      const existingMovie = result.documents[0];
+      const existingDoc = result.documents[0];
 
       await database.updateDocument(
         DATABASE_ID,
         COLLECTION_ID,
-        existingMovie.$id,
+        existingDoc.$id,
         {
-          count: existingMovie.count + 1,
+          searchTerms: normalizedQuery, // Use consistent field name
+          count: existingDoc.count + 1
         }
       );
     } else {
+      // Create new document with only the fields defined in your schema
       await database.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
-        serchTerm: query,
-        movieId: movie.id,
-        movieTitle: movie.title,
+        searchTerms: normalizedQuery,
+        movie_id: movie.id, // Make sure this matches your Appwrite schema
+        title: movie.title,
         count: 1,
-        poster_url: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+        poster_url: movie.poster_path 
+          ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+          : ''
       });
     }
   } catch (error) {
-    console.log("Error updating search count:", error);
+    console.error("Error updating search count:", {
+      error,
+      query,
+      movieData: {
+        id: movie.id,
+        title: movie.title
+      }
+    });
     throw error;
   }
+};
 
-  //check if a record of that search has already been stored
-  //if a document is found increment the searchCount field by 1
-  //if no document is found c
-  // create a new document with searchCount field set to 1
+// Helper function to check database connection
+export const checkDatabaseConnection = async () => {
+  try {
+    await database.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(1)]);
+    return true;
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return false;
+  }
 };

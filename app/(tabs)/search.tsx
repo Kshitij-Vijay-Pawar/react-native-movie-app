@@ -34,23 +34,36 @@ const search = () => {
     false
   );
 
-  useEffect(() => {
-    
-    const timeoutID = setTimeout(async () => {
-      if (searchQuery.trim()) {
-        await loadMovies();
-
-        if(movies?.length > 0 && movies?.[0]) {
-          await updateSearchCount(searchQuery, movies[0]);
-        }
-
-      } else {
-        reset();
+useEffect(() => {
+  // Only trigger when searchQuery changes
+  const timeoutID = setTimeout(async () => {
+    if (searchQuery.trim()) {
+      try {
+        await loadMovies(); // fetch new movies
+      } catch (error) {
+        console.error("Search error:", error);
       }
-    }, 500);
+    } else {
+      reset();
+    }
+  }, 1000); // Wait 1 second after user stops typing
 
-    return () => clearTimeout(timeoutID);
-  }, [searchQuery]);
+  return () => clearTimeout(timeoutID);
+}, [searchQuery]); // only depend on searchQuery
+
+
+// Separate effect to handle updateSearchCount once movies are loaded
+useEffect(() => {
+  if (movies && movies.length > 0 && searchQuery.trim()) {
+    const firstMovie = movies[0];
+    console.log("Movie to be saved:", firstMovie);
+    updateSearchCount(searchQuery, firstMovie);
+  }
+}, [movies]);
+
+
+
+  
 
   return (
     <View className="flex-1 bg-primary">
